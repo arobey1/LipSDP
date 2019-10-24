@@ -4,7 +4,8 @@ function L = lipschitz_multi_layer(weights, mode, verbose, network)
     %
     % params:
     %   * weights: cell         - weights of neural network in cell array
-    %   * mode: str             - LipSDP formulation to use
+    %   * mode: str             - LipSDP formulation in ['network',
+    %                             'neuron','layer','network-rand']
     %   * verbose: logical      - if true, prints CVX output from solve
     %   * network: struct       - data describing neural network
     %       - fields:
@@ -12,19 +13,16 @@ function L = lipschitz_multi_layer(weights, mode, verbose, network)
     %           (3) beta: float             - slope-restricted upper bound
     %           (3) net_dims: list of ints  - dimensions of NN
     %           (4) weight_path: str        - path of saved weights of NN
-    %
+    %           (5) num_neurons: int        - number of neurons to couple
+    %                                         in LipSDP-Neuron-rand mode
+    %                                         
     % returns:
-    %   L: float - Lipschitz constant of neural network
+    %   * L: float - Lipschitz constant of neural network
     % ---------------------------------------------------------------------
 
     warning('off', 'all');
-    
-    % extract neural network parameters
-    beta = network.beta; 
-    alpha = network.alpha;
-    net_dims = network.net_dims;
-    N = sum(net_dims(2:end-1));  % total hidden neurons
 
+    % set verbosity of CVX using verbose flag
     if verbose == true
         cvx_begin sdp
     else
@@ -32,11 +30,17 @@ function L = lipschitz_multi_layer(weights, mode, verbose, network)
     end
 
     cvx_solver mosek
-    variable L_sq nonnegative
+    variable L_sq nonnegative   % optval will be square of Lipschitz const
+
+    % extract neural network parameters
+    alpha = network.alpha;
+    beta = network.beta;
+    net_dims = network.net_dims;
+    N = sum(net_dims(2:end-1));     % total number of hidden neurons
+    rand_num_neurons = network.num_neurons;
 
     % LipSDP-Network - one variable for each of the (N choose 2) neurons in
-    % the network to parameterize T matrix.  This mode has complexity
-    % O(N^2)
+    % the network to parameterize T matrix.  This mode has complexity O(N^2)
     if strcmp(mode, 'network')
         
         variable D(N, 1) nonnegative
@@ -52,10 +56,17 @@ function L = lipschitz_multi_layer(weights, mode, verbose, network)
 
     % Repeated-rand mode: uses repeated nonlinearities with a random subset
     % of coupled neurons from the entire set of N choose 2 total neurons
-    elseif strcmp(mode, 'repeated-rand')
+    elseif strcmp(mode, 'network-rand')
+        
+        % cap number of random neurons
+        if rand_num_neurons > nchoosek(N, 2)
+            fprintf('[INFO]: Capping number of randomly chosen neurons to %d.\n', nchoosek(N, 2))
+            fprintf('You specified %d neurons.\n', rand_num_neurons);
+            rand_num_neurons = nchoosek(N, 2); 
+        end
 
         variable D(N, 1) nonnegative
-        variable zeta(num_neurons, 1) nonnegative
+        variable zeta(rand_num_neurons, 1) nonnegative
 
         id = eye(N);
         T = diag(D);
@@ -63,7 +74,7 @@ function L = lipschitz_multi_layer(weights, mode, verbose, network)
 
         % take a random subset of neurons to couple
         k = randperm(size(C, 1));
-        C = C(k(1:num_neurons), :);
+        C = C(k(1:rand_num_neurons), :);
 
         % form T matrix using these randomly chosen neurons
         E = id(:, C(:, 1)) - id(:, C(:, 2));
@@ -97,7 +108,7 @@ function L = lipschitz_multi_layer(weights, mode, verbose, network)
 
     % If mode is not valid, raise error
     else
-        error_msg = '[ERROR]: formulation must be in ["neuron", "network", "layer"]\n%s';
+        error_msg = '[ERROR]: formulation must be in ["neuron", "network", "layer", "network-rand"]\n%s';
         error_info = sprintf(' --> You supplied formulation == %s', mode);
         error(error_msg, error_info);
        
