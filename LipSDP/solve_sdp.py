@@ -12,7 +12,7 @@ def main(args):
     network = {
         'alpha': matlab.double([args.alpha]),
         'beta': matlab.double([args.beta]),
-        'net_dims': matlab.double([2, 10, 2]),
+        'net_dims': matlab.double([2, 10, 10, 10, 2]),
         'weight_path': os.path.join(os.getcwd(), 'test_weights'),
         'num_neurons': matlab.double([args.num_neurons])
     }
@@ -22,6 +22,8 @@ def main(args):
         'split': False,
         'parallel': False,
         'verbose': args.verbose,
+        'split': args.split,
+        'split_size': args.split_size,
     }
 
     L = eng.solve_LipSDP(network, lip_params, nargout=1)
@@ -32,7 +34,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    # formulations
     parser.add_argument('--form',
         default='neuron',
         const='neuron',
@@ -60,7 +61,21 @@ if __name__ == '__main__':
         type=int,
         default=100,
         nargs=1,
-        help="Number of neurons to couple for LipSDP-Network-rand formulation")
+        help='number of neurons to couple for LipSDP-Network-rand formulation')
+
+    parser.add_argument('--split',
+        action='store_true',
+        help='splits network into subnetworks for more efficient solving if supplied')
+
+    parser.add_argument('--parallel',
+        action='store_true',
+        help='parallelizes solving for split formulations if supplied')
+
+    parser.add_argument('--split-size',
+        type=int,
+        default=2,
+        nargs=1,
+        help='number of layers in each subnetwork for splitting formulations')
 
     args = parser.parse_args()
     main(args)
