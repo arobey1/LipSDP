@@ -1,20 +1,20 @@
-function L = lipschitz_multi_layer(weights, mode, verbose, network)
+function L = lipschitz_multi_layer(weights, mode, verbose, rand_num_neurons, ...
+    net_dims, network)
     % Computes Lipschitz constant of NN using LipSDP formulation
     % mode parameter is used to select which formulation of LipSDP to use
     %
     % params:
-    %   * weights: cell         - weights of neural network in cell array
-    %   * mode: str             - LipSDP formulation in ['network',
+    %   * weights: cell          - weights of neural network in cell array
+    %   * mode: str              - LipSDP formulation in ['network',
     %                             'neuron','layer','network-rand']
-    %   * verbose: logical      - if true, prints CVX output from solve
-    %   * network: struct       - data describing neural network
+    %   * verbose: logical       - if true, prints CVX output from solve
+    %   * rand_num_neurons: int  - num of neurons to couple in LipSDP-Neuron-rand
+    %   * net_dims: list of ints - dimensions of layers in neural net
+    %   * network: struct        - data describing neural network
     %       - fields:
     %           (1) alpha: float            - slope-restricted lower bound
-    %           (3) beta: float             - slope-restricted upper bound
-    %           (3) net_dims: list of ints  - dimensions of NN
-    %           (4) weight_path: str        - path of saved weights of NN
-    %           (5) num_neurons: int        - number of neurons to couple
-    %                                         in LipSDP-Neuron-rand mode
+    %           (2) beta: float             - slope-restricted upper bound
+    %           (3) weight_path: str        - path of saved weights of NN
     %                                         
     % returns:
     %   * L: float - Lipschitz constant of neural network
@@ -35,9 +35,7 @@ function L = lipschitz_multi_layer(weights, mode, verbose, network)
     % extract neural network parameters
     alpha = network.alpha;
     beta = network.beta;
-    net_dims = network.net_dims;
     N = sum(net_dims(2:end-1));     % total number of hidden neurons
-    rand_num_neurons = network.num_neurons;
 
     % LipSDP-Network - one variable for each of the (N choose 2) neurons in
     % the network to parameterize T matrix.  This mode has complexity O(N^2)
