@@ -14,16 +14,16 @@ def main(args):
         'beta': matlab.double([args.beta]),
         'net_dims': matlab.double([2, 10, 10, 10, 2]),
         'weight_path': os.path.join(os.getcwd(), 'test_weights'),
-        'num_neurons': matlab.double([args.num_neurons])
     }
 
     lip_params = {
         'formulation': args.form,
-        'split': False,
-        'parallel': False,
-        'verbose': args.verbose,
-        'split': args.split,
-        'split_size': args.split_size,
+        'split': matlab.logical([args.split]),
+        'parallel': matlab.logical([args.parallel]),
+        'verbose': matlab.logical([args.verbose]),
+        'split_size': matlab.double([args.split_size]),
+        'num_neurons': matlab.double([args.num_neurons]),
+        'num_workers': matlab.double([args.num_workers])
     }
 
     L = eng.solve_LipSDP(network, lip_params, nargout=1)
@@ -46,13 +46,13 @@ if __name__ == '__main__':
         help='prints CVX output from solve if supplied')
 
     parser.add_argument('--alpha',
-        type=int,
+        type=float,
         default=0,
         nargs=1,
         help='lower bound for slope restriction bound')
 
     parser.add_argument('--beta',
-        type=int,
+        type=float,
         default=1,
         nargs=1,
         help='lower bound for slope restriction bound')
@@ -77,5 +77,18 @@ if __name__ == '__main__':
         nargs=1,
         help='number of layers in each subnetwork for splitting formulations')
 
+    parser.add_argument('--num-workers',
+        type=int,
+        default=0,
+        nargs=1,
+        help='number of workers for parallelization of splitting formulations')
+
     args = parser.parse_args()
+
+    if args.parallel is True and args.num_workers[0] < 1:
+        raise ValueError('When you use --parallel, --num-workers must be an integer >= 1.')
+
+    if args.split is True and args.split_size[0] < 1:
+        raise ValueError('When you use --split, --split-size must be an integer >= 1.')
+
     main(args)
