@@ -8,6 +8,8 @@ def main(args):
 
     eng = matlab.engine.start_matlab()
     eng.addpath(r'matlab_engine')
+    eng.addpath(r'matlab_engine/weight_utils')
+    eng.addpath(r'matlab_engine/error_messages')
 
     network = {
         'alpha': matlab.double([args.alpha]),
@@ -23,7 +25,8 @@ def main(args):
         'verbose': matlab.logical([args.verbose]),
         'split_size': matlab.double([args.split_size]),
         'num_neurons': matlab.double([args.num_neurons]),
-        'num_workers': matlab.double([args.num_workers])
+        'num_workers': matlab.double([args.num_workers]),
+        'num_dec_vars': matlab.double([args.num_decision_vars])
     }
 
     L = eng.solve_LipSDP(network, lip_params, nargout=1)
@@ -38,7 +41,7 @@ if __name__ == '__main__':
         default='neuron',
         const='neuron',
         nargs='?',
-        choices=('neuron', 'network', 'layer', 'network-rand'),
+        choices=('neuron', 'network', 'layer', 'network-rand', 'network-dec-vars'),
         help='LipSDP formulation to use')
 
     parser.add_argument('-v', '--verbose',
@@ -82,6 +85,12 @@ if __name__ == '__main__':
         default=0,
         nargs=1,
         help='number of workers for parallelization of splitting formulations')
+
+    parser.add_argument('--num-decision-vars',
+        type=int,
+        default=10,
+        nargs=1,
+        help='specify number of decision variables to be used for LipSDP')
 
     args = parser.parse_args()
 

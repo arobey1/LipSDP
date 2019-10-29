@@ -1,14 +1,18 @@
-function L = lipschitz_multi_layer(weights, mode, verbose, rand_num_neurons, ...
-    net_dims, network)
+function L = lipschitz_multi_layer(weights, mode, verbose, num_rand_neurons, ...
+    num_dec_vars, net_dims, network)
     % Computes Lipschitz constant of NN using LipSDP formulation
     % mode parameter is used to select which formulation of LipSDP to use
     %
     % params:
     %   * weights: cell          - weights of neural network in cell array
     %   * mode: str              - LipSDP formulation in ['network',
-    %                             'neuron','layer','network-rand']
+    %                             'neuron','layer','network-rand', 
+    %                              'network-dec-vars']
     %   * verbose: logical       - if true, prints CVX output from solve
-    %   * rand_num_neurons: int  - num of neurons to couple in LipSDP-Neuron-rand
+    %   * num_rand_neurons: int  - num of neurons to couple in 
+    %                              LipSDP-Network-rand
+    %   * num_dec_vars: int      - num of decision variables for
+    %                              LipSDP-Network-Dec-Vars
     %   * net_dims: list of ints - dimensions of layers in neural net
     %   * network: struct        - data describing neural network
     %       - fields:
@@ -36,57 +40,69 @@ function L = lipschitz_multi_layer(weights, mode, verbose, rand_num_neurons, ...
     alpha = network.alpha;
     beta = network.beta;
     N = sum(net_dims(2:end-1));     % total number of hidden neurons
+    id = eye(N);
 
     % LipSDP-Network - one variable for each of the (N choose 2) neurons in
     % the network to parameterize T matrix.  This mode has complexity O(N^2)
     if strcmp(mode, 'network')
         
         variable D(N, 1) nonnegative
-        variable zeta(N * (N-1) / 2, 1) nonnegative
+        variable zeta(nchoosek(N, 2), 1) nonnegative
 
-        id = eye(N);
         T = diag(D);
         C = nchoosek(1:N, 2);
         E = id(:, C(:, 1)) - id(:, C(:, 2));
         T = T + E * diag(zeta) * E';
-        Q = [-2 * alpha * beta * T, (alpha+beta) * T;
-             (alpha + beta) * T, -2 * T];
 
-    % Repeated-rand mode: uses repeated nonlinearities with a random subset
+    % LipSDP-Network-Rand uses repeated nonlinearities with a random subset
     % of coupled neurons from the entire set of N choose 2 total neurons
     elseif strcmp(mode, 'network-rand')
         
         % cap number of random neurons
-        if rand_num_neurons > nchoosek(N, 2)
-            fprintf('[INFO]: Capping number of randomly chosen neurons to %d.\n', nchoosek(N, 2))
-            fprintf('You specified %d neurons.\n', rand_num_neurons);
-            rand_num_neurons = nchoosek(N, 2); 
-        end
+        num_rand_neurons = cap_input(num_rand_neurons, N, 'randomly chosen neurons');
 
         variable D(N, 1) nonnegative
-        variable zeta(rand_num_neurons, 1) nonnegative
+        variable zeta(num_rand_neurons, 1) nonnegative
 
-        id = eye(N);
         T = diag(D);
         C = nchoosek(1:N, 2);
 
         % take a random subset of neurons to couple
         k = randperm(size(C, 1));
-        C = C(k(1:rand_num_neurons), :);
+        C = C(k(1:num_rand_neurons), :);
 
         % form T matrix using these randomly chosen neurons
         E = id(:, C(:, 1)) - id(:, C(:, 2));
         T = T + E * diag(zeta) * E';
-        Q = [-2 * alpha * beta * T, (alpha + beta) * T; 
-             (alpha + beta) * T, -2 * T];
+        
+    % LipSDP-Network-Dec-Vars - uses repeated nonlinearities with a
+    % spcified number of decision variables spaced out equally
+    elseif strcmp(mode, 'network-dec-vars')
+        
+        % cap number of decision variables
+        num_dec_vars = cap_input(num_dec_vars, N, 'decision variables');
+        
+        variable D(N, 1) nonnegative
+        
+        T = diag(D);
+        C = nchoosek(1:N, 2);
+        
+        % space out decision variables in couplings
+        spacing = ceil(nchoosek(N, 2) / num_dec_vars);
+        C = C(1:spacing:end, :);
+
+        variable zeta(size(C, 1), 1) nonnegative
+
+        % form T matrix using these randomly chosen neurons
+        E = id(:, C(:, 1)) - id(:, C(:, 2));
+        T = T + E * diag(zeta) * E';
 
     % LipSDP-Neuron - one CVX variable per hidden neuron in the network to 
     % parameterize T matrix.  This mode has complexity O(N).
     elseif strcmp(mode, 'neuron')
 
         variable D(N, 1) nonnegative
-        Q = [-2 * alpha * beta * diag(D), (alpha + beta) * diag(D);
-             (alpha + beta) * diag(D), -2 * diag(D)];
+        T = diag(D);
 
     % LipSDP-Layer - one CVX variable per hidden hidden layer in the
     % network to parameterize T matrix.  This mode has complexity O(m)
@@ -100,9 +116,7 @@ function L = lipschitz_multi_layer(weights, mode, verbose, rand_num_neurons, ...
             identities{i} = D(i) * eye(net_dims(i+1));
         end
 
-        D_mat = blkdiag(identities{:});
-        Q = [-2 * alpha * beta * D_mat, (alpha + beta) * D_mat;
-             (alpha + beta) * D_mat, -2 * D_mat];
+        T = blkdiag(identities{:});
 
     % If mode is not valid, raise error
     else
@@ -111,6 +125,11 @@ function L = lipschitz_multi_layer(weights, mode, verbose, rand_num_neurons, ...
         error(error_msg, error_info);
        
     end
+    
+    % Create Q matrix, which is parameterized by T, which in turn depends
+    % on the chosen LipSDP formulation 
+    Q = [-2 * alpha * beta * T, (alpha + beta) * T; 
+             (alpha + beta) * T, -2 * T];
 
     % Create A term in Lipschitz formulation
     first_weights = blkdiag(weights{1:end-1});

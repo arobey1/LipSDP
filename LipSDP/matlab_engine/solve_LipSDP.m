@@ -26,15 +26,19 @@ function L = solve_LipSDP(network, lip_params)
     %   * L: float - computed Lipschitz constant for neural network
     % ---------------------------------------------------------------------
     
-    addpath('weight_utils');
-    
     % load weights from file
     weights = create_weights(network.net_dims, 'rand');
+    
+    % need to pass net_dims as a separate argument when we do splitting 
+    % because splitting engenders a different list of dimensions for each 
+    % subnetwork, which need to be passed to the solver
+    net_dims = network.net_dims;
+    network = rmfield(network, 'net_dims');
     
     % if splitting flag is supplied, split network into subnetworks
     if lip_params.split
                 
-        [split_W, split_net_dims] = split_weights(weights, network.net_dims, ...
+        [split_W, split_net_dims] = split_weights(weights, net_dims, ...
             lip_params.split_size);
         L = split_and_solve(split_W, split_net_dims, lip_params, network);
     
@@ -42,7 +46,8 @@ function L = solve_LipSDP(network, lip_params)
     else
         
         L = lipschitz_multi_layer(weights, lip_params.formulation, ...
-            lip_params.verbose, lip_params.num_neurons, network.net_dims, network);
+            lip_params.verbose, lip_params.num_neurons, lip_params.num_dec_vars,...
+            net_dims, network);
         
     end
     
