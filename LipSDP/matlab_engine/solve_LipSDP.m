@@ -26,6 +26,8 @@ function L = solve_LipSDP(network, lip_params)
     %   * L: float - computed Lipschitz constant for neural network
     % ---------------------------------------------------------------------
     
+    addpath('weight_utils');
+    
     % load weights from file
     weights = create_weights(network.net_dims, 'rand');
     
