@@ -10,8 +10,7 @@ function lip_prod = split_and_solve(split_W, split_net_dims, lip_params, network
     %       - fields:
     %           (1) alpha: float            - slope-restricted lower bound
     %           (3) beta: float             - slope-restricted upper bound
-    %           (3) net_dims: list of ints  - dimensions of NN
-    %           (4) weight_path: str        - path of saved weights of NN
+    %           (3) weight_path: str        - path of saved weights of NN
     %   * lip_params: struct    - parameters for LipSDP
     %       - fields:
     %           (1) formulation: str    - LipSDP formulation to use
