@@ -7,9 +7,8 @@ function L = solve_LipSDP(network, lip_params)
     %   * network: struct       - data describing neural network
     %       - fields:
     %           (1) alpha: float            - slope-restricted lower bound
-    %           (3) beta: float             - slope-restricted upper bound
-    %           (3) net_dims: list of ints  - dimensions of NN
-    %           (4) weight_path: str        - path of saved weights of NN
+    %           (2) beta: float             - slope-restricted upper bound
+    %           (3) weight_path: str        - path of saved weights of NN
     %   * lip_params: struct    - parameters for LipSDP
     %       - fields:
     %           (1) formulation: str    - LipSDP formulation to use
@@ -27,13 +26,7 @@ function L = solve_LipSDP(network, lip_params)
     % ---------------------------------------------------------------------
     
     % load weights from file
-    weights = create_weights(network.net_dims, 'rand');
-    
-    % need to pass net_dims as a separate argument when we do splitting 
-    % because splitting engenders a different list of dimensions for each 
-    % subnetwork, which need to be passed to the solver
-    net_dims = network.net_dims;
-    network = rmfield(network, 'net_dims');
+    [weights, net_dims] = load_weights(network.weight_path{1});
     
     % if splitting flag is supplied, split network into subnetworks
     if lip_params.split
