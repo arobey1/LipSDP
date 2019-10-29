@@ -20,9 +20,11 @@ function lip_prod = split_and_solve(split_W, split_net_dims, lip_params, network
     %           (4) verbose: logical    - if true, print CVX output
     %           (5) split_size: int     - size of subnetwork for splitting
     %           (6) num_neurons: int    - number of neurons to couple in
-    %                                     LipSDP-Neuron-rand mode
+    %                                     LipSDP-Network-Rand mode
     %           (7) num_workers: int    - number of workers for parallel-
     %                                     ization of splitting formulations
+    %           (8) num_dec_vars: int   - number of decision variables for
+    %                                     LipSDP-Network-Dec-Vars
     %
     % returns:
     %   * lip_prod: float - Lipschitz constant found by splitting network
@@ -36,7 +38,8 @@ function lip_prod = split_and_solve(split_W, split_net_dims, lip_params, network
     % unpack variables from lip_params
     mode = lip_params.formulation;
     verbose = lip_params.verbose;
-    rand_num_neurons = lip_params.num_neurons;
+    num_rand_neurons = lip_params.num_neurons;
+    num_dec_vars = lip_params.num_dec_vars;
 
     % initialize Lipschitz constant of network
     lip_prod = 1;
@@ -52,7 +55,7 @@ function lip_prod = split_and_solve(split_W, split_net_dims, lip_params, network
 
         if size(curr_weights, 2) > 1
             Lf_reduced_piece = lipschitz_multi_layer(curr_weights, mode, ...
-                verbose, rand_num_neurons, curr_net_dims, network);
+                verbose, num_rand_neurons, num_dec_vars, curr_net_dims, network);
 
         % if there is only one matrix in this layer, just
         % multiply by the norm of that matrix

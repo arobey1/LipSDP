@@ -120,9 +120,7 @@ function L = lipschitz_multi_layer(weights, mode, verbose, num_rand_neurons, ...
 
     % If mode is not valid, raise error
     else
-        error_msg = '[ERROR]: formulation must be in ["neuron", "network", "layer", "network-rand"]\n%s';
-        error_info = sprintf(' --> You supplied formulation == %s', mode);
-        error(error_msg, error_info);
+        invalid_mode(mode);
        
     end
     
