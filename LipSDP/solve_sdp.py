@@ -10,12 +10,12 @@ def main(args):
     eng.addpath(r'matlab_engine')
     eng.addpath(r'matlab_engine/weight_utils')
     eng.addpath(r'matlab_engine/error_messages')
+    eng.addpath(r'examples/saved_weights')
 
     network = {
         'alpha': matlab.double([args.alpha]),
         'beta': matlab.double([args.beta]),
-        'net_dims': matlab.double([2, 10, 10, 10, 2]),
-        'weight_path': os.path.join(os.getcwd(), 'test_weights'),
+        'weight_path': args.weight_path,
     }
 
     lip_params = {
@@ -30,8 +30,7 @@ def main(args):
     }
 
     L = eng.solve_LipSDP(network, lip_params, nargout=1)
-    print(L)
-
+    print(f'LipSDP-{args.form.capitalize()} gives a Lipschitz constant of {L:.3f}')
 
 
 if __name__ == '__main__':
@@ -91,6 +90,12 @@ if __name__ == '__main__':
         default=10,
         nargs=1,
         help='specify number of decision variables to be used for LipSDP')
+
+    parser.add_argument('--weight-path',
+        type=str,
+        required=True,
+        nargs=1,
+        help='path of weights corresponding to trained neural network model')
 
     args = parser.parse_args()
 
