@@ -1,0 +1,13 @@
+cycler==0.10.0
+kiwisolver==1.1.0
+matlabengineforpython===R2018a
+matplotlib==3.1.1
+numpy==1.17.3
+Pillow==6.2.1
+pyparsing==2.4.2
+python-dateutil==2.8.0
+scipy==1.3.1
+six==1.12.0
+torch==1.3.0.post2
+torchsummary==1.5.1
+torchvision==0.4.1.post2
