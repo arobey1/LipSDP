@@ -126,7 +126,7 @@ LipSDP-Network-dec-vars gives a Lipschitz constant of 24.365
 
 ## Splitting
 
-For larger networks, it is often efficacious obtain a Lipschitz constant by solving to find Lipschitz constants for smaller subsets of layers and then multiplying the resulting constants.  To solve for Lipschitz constants of subnetworks with two layers each for the four-hidden-layer network saved in `examples/saved_weights/random_weights.mat` using LipSDP-Neuron, we can run
+For larger networks, it is often efficacious to obtain a Lipschitz constant by solving to find Lipschitz constants for smaller subsets of layers and then multiplying the resulting constants.  To solve for a Lipschitz constant of the four-hidden-layer network saved in `examples/saved_weights/random_weights.mat` using LipSDP-Neuron using subnetworks with two layers each, we can run
 
 ```
 export WEIGHT_PATH=examples/saved_weights/random_weights.mat
@@ -137,7 +137,7 @@ LipSDP-Neuron gives a Lipschitz constant of 37.668
 
 Splitting can be used with any of the formulations given in the above table.  We used this splitting method to calculate Lipschitz constants for 100-hidden-layer neural networks with random weights.  The results are shown in Figure 2(b) of our paper.
 
-To parallelize the solving of the SDPs corresponding to each subnetwork, add the `--parallel`.  Users can also optionally specify the number of workers using the `--num-workers` flag.  For example:
+To parallelize the solving of the SDPs corresponding to each subnetwork, add the `--parallel` flag.  Users can also optionally specify the number of workers using the `--num-workers` flag.  For example:
 
 ```
 python solve_sdp.py --form neuron --split --split-size 2 --parallel --num-workers 6 --weight-path $WEIGHT_PATH
