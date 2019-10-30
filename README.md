@@ -18,6 +18,23 @@ If you find this repository useful for your research, please consider citing our
 }
 ```
 
+## Installation and Requirements
+
+After cloning this repository, it is easiest to set up a virtual environment to install the dependencies.  
+
+```
+python3 -m venv lipenv
+```
+
+Next, one can activate the environment and install the dependencies, which are listed in `requirements.txt`.
+
+```
+source activate lipenv/bin/activate
+pip install -r requirements.txt
+```
+
+It is also necessary to install [CVX](http://cvxr.com/cvx/download/) for MATLAB.  Further, this repository uses the [MATLAB API for Python](https://www.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html), which also requires installation from the MATLAB command prompt.  Finally, to solve the semidefinite programs, we recommend the solver [MOSEK](https://www.mosek.com), which requires a license.  
+
 ## Usage
 
 This package can be used to calculate Lipschitz constants of feed-forward neural networks.  To do so, a user must first save the weights of a neural network model in the ```.mat``` format.  Examples are given in the ```examples/``` directory.  
@@ -55,7 +72,7 @@ python solve_sdp.py --form neuron --weight-path examples/saved_weights/random_we
 which should return something like
 
 ```
-LipSDP-Neuron gives a Lipschitz constant of 36.482.
+LipSDP-Neuron gives a Lipschitz constant of 36.482
 ```
 
 A second example is provided in `examples/mnist_example.py`.  This script trains a one-hidden-layer neural network on the MNIST dataset using PyTorch.  The weights can be extracted and saved in a similar way as above.  Then to calculate a Lipschitz constant of the example MNIST weights in `examples/saved_weights/mnist_weights.mat` with the LipSDP-Layer, we can run
