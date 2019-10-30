@@ -3,9 +3,9 @@
 This repository contains code for the Lipschitz constant estimation semidefinite programming framework introduced in [LipSDP](https://arxiv.org/abs/1906.04893) by Mahyar Fazlyab, Alexander Robey, Hamed Hassani, Manfred Morari, and George J. Pappas.  This work will appear as a conference paper at NeurIPS 2019.
 
 Compared to other methods in this literature, this semidefinite programming approach for computing the Lipschitz constant of a neural network is both more scalable and accurate.  By viewing activation functions as gradients of convex potential functions, we use incremental quadratic constraints to formulate __LipSDP__, a convex program that estimates this Lipschitz constant.  We offer three forms of our SDP:
-  1. __LipSDP-Network__ imposes constraints on all possible pairs of activation functions and has O(n²) decision variables. It is the least scalable but the most accurate method.
+  1. __LipSDP-Network__ imposes constraints on all possible pairs of activation functions and has O(n²) decision variables, where `n` is the number of hidden neurons in the network. It is the least scalable but the most accurate method.
   2. __LipSDP-Neuron__ ignores the cross coupling constraints among different neurons and has O(n) decision variables. It is more scalable and less accurate than LipSDP-Network. For this case, we have T = diag(λ<sub>11</sub>,... , λ<sub>nn</sub>).
-  3. __LipSDP-Layer__ considers only one constraint per layer, resulting in O(l) decision variables.  It is the most scalable and least accurate method. For this variant, we have T = blkdiag(λ<sub>1</sub>I<sub>n<sub>1</sub></sub> ,... , λ<sub>m</sub>I<sub>n<sub>m</sub></sub> ).
+  3. __LipSDP-Layer__ considers only one constraint per layer, resulting in O(`m`) decision variables, where `m` is the number of hidden layers.  It is the most scalable and least accurate method. For this variant, we have T = blkdiag(λ<sub>1</sub>I<sub>n<sub>1</sub></sub> ,... , λ<sub>m</sub>I<sub>n<sub>m</sub></sub> ).
 
 If you find this repository useful for your research, please consider citing our work:
 
