@@ -9,7 +9,7 @@ Compared to other methods in this literature, this semidefinite programming appr
 
 If you find this repository useful for your research, please consider citing our work:
 
-```
+```latex
 @inproceedings{fazlyab2019efficient,
   title     = {Efficient and Accurate Estimation of Lipschitz Constants for Deep Neural Networks},
   author    = {Fazlyab, Mahyar and Robey, Alexander and Hassani, Hamed and Morari, Manfred and Pappas, George J},
@@ -22,13 +22,13 @@ If you find this repository useful for your research, please consider citing our
 
 After cloning this repository, it is easiest to set up a virtual environment to install the dependencies.  
 
-```
+```bash
 python3 -m venv lipenv
 ```
 
 Next, one can activate the environment and install the dependencies, which are listed in `requirements.txt`.
 
-```
+```bash
 source activate lipenv/bin/activate
 pip install -r requirements.txt
 ```
@@ -41,7 +41,7 @@ This package can be used to calculate Lipschitz constants of feed-forward neural
 
 As a simple first example, consider the following code snippet which generates random weights in the following way:
 
-```
+```python
 import numpy as np
 
 weights = []
@@ -55,7 +55,7 @@ for i in range(1, len(net_dims)):
 
 This network has an input and output dimension of 2.  The hidden sizes are 10, 30, and then 20 neurons.  We next save the weights in the ```.mat``` format:
 
-```
+```python
 from scipy.io import savemat
 
 fname = os.path.join(os.getcwd(), 'saved_weights/random_weights.mat')
@@ -65,7 +65,7 @@ savemat(fname, data)
 
 Then, to compute a Lipschitz constant for this network with the LipSDP-Neuron formulation, we can run the following command from the ```LipSDP/``` directory:
 
-```
+```bash
 python solve_sdp.py --form neuron --weight-path examples/saved_weights/random_weights.mat
 ```
 
@@ -77,7 +77,7 @@ LipSDP-Neuron gives a Lipschitz constant of 36.482
 
 A second example is provided in `examples/mnist_example.py`.  This script trains a one-hidden-layer neural network on the MNIST dataset using PyTorch.  The weights can be extracted and saved in a similar way as above.  Then to calculate a Lipschitz constant of the example MNIST weights in `examples/saved_weights/mnist_weights.mat` with the LipSDP-Layer, we can run
 
-```
+```bash
 python solve_sdp.py --form layer --weight-path examples/saved_weights/mnist_weights.mat
 ```
 
@@ -95,7 +95,7 @@ Here `k` is a user specified number (explained below).
 
 Each formulation can be specified by supplying an argument with the ```--form``` flag.  The performance of these methods on ```examples/saved_weights/random_weights.mat``` is shown below:
 
-```
+```bash
 export WEIGHT_PATH=examples/saved_weights/random_weights.mat
 
 python solve_sdp.py --form layer --weight-path $WEIGHT_PATH
@@ -110,7 +110,7 @@ LipSDP-Network gives a Lipschitz constant of 36.482
 
 We also have several variants of LipSDP-Network that are implemented in this package.  In general, LipSDP-Network considers the couplings between each pair of decision variables; LipSDP-Network-Rand allows a user to consider a smaller subset of randomly chosen neuron couplings.  For example, to consider only 5 randomly chosen couplings from the (50 choose 2) = 1225 possible couplings, one can run
 
-```
+```bash
 export WEIGHT_PATH=examples/saved_weights/mnist_weights.mat
 
 python solve_sdp.py --form network-rand --num-neurons 5 --weight-path $WEIGHT_PATH
@@ -119,7 +119,7 @@ LipSDP-Network-rand gives a Lipschitz constant of 24.320
 
 Another formulation is LipSDP-Network-Dec-Vars, which allows a user to specify the number of decision variables to be used in the semidefinite program.  An example with 5 decision variables is shown below:
 
-```
+```bash
 python solve_sdp.py --form network-dec-vars --num-decision-vars 5 --weight-path $WEIGHT_PATH
 LipSDP-Network-dec-vars gives a Lipschitz constant of 24.365
 ```
@@ -128,7 +128,7 @@ LipSDP-Network-dec-vars gives a Lipschitz constant of 24.365
 
 For larger networks, it is often efficacious to obtain a Lipschitz constant by solving to find Lipschitz constants for smaller subsets of layers and then multiplying the resulting constants.  To solve for a Lipschitz constant of the four-hidden-layer network saved in `examples/saved_weights/random_weights.mat` using LipSDP-Neuron using subnetworks with two layers each, we can run
 
-```
+```bash
 export WEIGHT_PATH=examples/saved_weights/random_weights.mat
 
 python solve_sdp.py --form neuron --split --split-size 2 --weight-path $WEIGHT_PATH
@@ -139,7 +139,7 @@ Splitting can be used with any of the formulations given in the above table.  We
 
 To parallelize the solving of the SDPs corresponding to each subnetwork, add the `--parallel` flag.  Users can also optionally specify the number of workers using the `--num-workers` flag.  For example:
 
-```
+```bash
 python solve_sdp.py --form neuron --split --split-size 2 --parallel --num-workers 6 --weight-path $WEIGHT_PATH
 Starting parallel pool (parpool) using the 'local' profile ...
 Connected to the parallel pool (number of workers: 6).
