@@ -3,9 +3,11 @@ import numpy as np
 import matlab.engine
 from scipy.io import savemat
 import os
+from time import time
 
 def main(args):
 
+    start_time = time()
     eng = matlab.engine.start_matlab()
     eng.addpath(r'matlab_engine')
     eng.addpath(r'matlab_engine/weight_utils')
@@ -29,8 +31,10 @@ def main(args):
         'num_dec_vars': matlab.double([args.num_decision_vars])
     }
 
+
     L = eng.solve_LipSDP(network, lip_params, nargout=1)
     print(f'LipSDP-{args.form.capitalize()} gives a Lipschitz constant of {L:.3f}')
+    print(f'Total time: {float(time() - start_time):.5} seconds')
 
 
 if __name__ == '__main__':
