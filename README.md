@@ -85,7 +85,7 @@ python solve_sdp.py --form layer --weight-path examples/saved_weights/mnist_weig
 
 There are several variants of the LipSDP semidefinite program introduced in this work.  If we let `n` be the number of neurons in the neural network and ```m``` be the number of hidden layers, then the scalability of our methods is as follows:
 
-Formulation | LipSDP-Layer | LipSDP-Neuron | LipSDP-Network | LipSDP-Netowrk-Rand | LipSDP-Network-Dec-Vars
+Formulation | LipSDP-Layer | LipSDP-Neuron | LipSDP-Network | LipSDP-Network-Rand | LipSDP-Network-Dec-Vars
 :---: | :---: | :---: | :---: | :---: | :--:
 Scalability | O(m) | O(n) | O(n²) | O(k) | O(k)
 `--form` argument | `layer` | `neuron` | `network` | `network-rand` | `network-dec-vars`
